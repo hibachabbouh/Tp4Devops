@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    options {
+        skipDefaultCheckout(true)
+    }
+
     environment {
         GIT_REPO       = 'https://github.com/hibachabbouh/Tp4Devops.git'
         GIT_BRANCH     = 'main'
@@ -8,10 +12,6 @@ pipeline {
         // SonarQube token provided (embedded here per request).
         SONAR_TOKEN    = 'sqp_c14254d9202fe26e0be713dd0ab70e1475558fe3'
         SONAR_PROJECT  = 'mon-app-devops'
-    }
-
-    tools {
-        nodejs 'NodeJS-18'
     }
 
     stages {
@@ -47,15 +47,20 @@ pipeline {
         stage('Static Analysis - SonarQube') {
             steps {
                 dir('app') {
-                    sh '''
-                        sonar-scanner \
-                          -Dsonar.projectKey=${SONAR_PROJECT} \
-                          -Dsonar.sources=src \
-                          -Dsonar.tests=tests \
-                          -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
-                          -Dsonar.host.url=${SONAR_HOST_URL} \
-                          -Dsonar.login=${SONAR_TOKEN}
-                    '''
+                    script {
+                        def scannerHome = tool 'SonarScanner'
+                        withSonarQubeEnv('SonarQube') {
+                            sh """
+                                ${scannerHome}/bin/sonar-scanner \
+                                  -Dsonar.projectKey=${SONAR_PROJECT} \
+                                  -Dsonar.sources=src \
+                                  -Dsonar.tests=tests \
+                                  -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+                                  -Dsonar.host.url=${SONAR_HOST_URL} \
+                                  -Dsonar.login=${SONAR_TOKEN}
+                            """
+                        }
+                    }
                 }
             }
         }
