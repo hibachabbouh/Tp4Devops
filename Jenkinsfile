@@ -25,7 +25,9 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 dir('app') {
-                    sh 'npm ci'
+                    // Changed from 'npm ci' to 'npm install'
+                    // npm install will work without package-lock.json
+                    sh 'npm install'
                 }
             }
         }
